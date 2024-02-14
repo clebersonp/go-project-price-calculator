@@ -4,13 +4,12 @@ import (
 	"example.com/price-calculator/conversion"
 	"example.com/price-calculator/filemanager"
 	"fmt"
-	"strconv"
 )
 
 type TaxIncludedPriceJob struct {
-	TaxRate           float64
-	InputPrices       []float64
-	TaxIncludedPrices map[string]float64
+	TaxRate           float64           `json:"taxRate"`
+	InputPrices       []float64         `json:"inputPrices"`
+	TaxIncludedPrices map[string]string `json:"taxIncludedPrices"`
 }
 
 func (job *TaxIncludedPriceJob) LoadData() {
@@ -40,16 +39,13 @@ func (job *TaxIncludedPriceJob) Process() {
 		taxedPrices[fmt.Sprintf("%.2f", price)] = fmt.Sprintf("%.2f", taxedPrice)
 	}
 
-	job.TaxIncludedPrices = make(map[string]float64)
-	for key, value := range taxedPrices {
-		floatValue, err := strconv.ParseFloat(value, 64)
+	job.TaxIncludedPrices = taxedPrices
 
-		if err != nil {
-			fmt.Println("Failed to convert string to float!")
-			fmt.Println(err)
-			return
-		}
-		job.TaxIncludedPrices[key] = floatValue
+	// write data as JSON format
+	err := filemanager.WriteJSON(fmt.Sprintf("result_%.0f.json", job.TaxRate*100), job)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 }
 
