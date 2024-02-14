@@ -1,8 +1,8 @@
 package main
 
 import (
-	"example.com/price-calculator/cmdmanager"
 	"example.com/price-calculator/filemanager"
+	"example.com/price-calculator/iomanager"
 	"example.com/price-calculator/prices"
 	"fmt"
 )
@@ -13,31 +13,25 @@ func main() {
 	jobs := make([]*prices.TaxIncludedPriceJob, len(taxRates))
 
 	for i, taxRate := range taxRates {
+		var iom iomanager.IOManager
 		inputFilePath := "prices.txt"
 		outputFilePath := fmt.Sprintf("result_%.0f.json", taxRate*100)
-		ioManager := filemanager.New(inputFilePath, outputFilePath)
-		priceJob := prices.NewTaxIncludedPriceJob(ioManager, taxRate)
-		priceJob.Process()
+		iom = filemanager.New(inputFilePath, outputFilePath)
+		//iom = cmdmanager.New() // can be interchangeable because of iomanager.IOManager interface contracts
+		priceJob := prices.NewTaxIncludedPriceJob(iom, taxRate)
+		err := priceJob.Process()
+
+		if err != nil {
+			fmt.Println("Could not process job")
+			fmt.Println(err)
+			continue
+		}
 		jobs[i] = priceJob
 	}
 
 	for _, job := range jobs {
-		fmt.Println(*job)
-	}
-
-	fmt.Println("------------------")
-
-	// reset jobs slice
-	jobs = make([]*prices.TaxIncludedPriceJob, len(taxRates))
-	for i, taxRate := range taxRates {
-		ioManger := cmdmanager.New()
-		priceJob := prices.NewTaxIncludedPriceJob(ioManger, taxRate)
-		priceJob.Process()
-		jobs[i] = priceJob
-	}
-
-	fmt.Println("-------------------")
-	for _, job := range jobs {
-		fmt.Println(*job)
+		if job != nil {
+			fmt.Println(*job)
+		}
 	}
 }
