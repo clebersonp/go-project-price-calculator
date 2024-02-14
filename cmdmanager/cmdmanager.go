@@ -37,7 +37,7 @@ func (cmd CMDManager) WriteResult(data any) error {
 		return errors.New("failed to convert data to JSON format")
 	}
 
-	fmt.Println(marshal)
+	fmt.Println(string(marshal))
 
 	return nil
 }
