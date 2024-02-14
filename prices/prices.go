@@ -30,10 +30,13 @@ func (job *TaxIncludedPriceJob) LoadData() error {
 	return nil
 }
 
-func (job *TaxIncludedPriceJob) Process(doneChan chan bool) {
+func (job *TaxIncludedPriceJob) Process(doneChan chan bool, errorChan chan error) {
 	// load data before process
 	err := job.LoadData()
 	if err != nil {
+		errorChan <- err
+		// return after passed error to errorChan to enforce the break
+		return
 	}
 
 	taxedPrices := make(map[string]string)
@@ -47,6 +50,8 @@ func (job *TaxIncludedPriceJob) Process(doneChan chan bool) {
 	// write data as JSON format
 	err = job.IOManager.WriteResult(job)
 	if err != nil {
+		errorChan <- err
+		return
 	}
 
 	// at the end we need to communicate the channel

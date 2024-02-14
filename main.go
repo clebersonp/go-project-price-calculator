@@ -13,12 +13,16 @@ func main() {
 	// slice channels of bool type
 	doneChannels := make([]chan bool, len(taxRates))
 
+	// slice channels of error type
+	errorChannels := make([]chan error, len(taxRates))
+
 	jobs := make([]*prices.TaxIncludedPriceJob, len(taxRates))
 
 	for i, taxRate := range taxRates {
 
 		// create a new chan for each taxRate
 		doneChannels[i] = make(chan bool)
+		errorChannels[i] = make(chan error)
 
 		var iom iomanager.IOManager
 		inputFilePath := "prices.txt"
@@ -32,7 +36,7 @@ func main() {
 		// one this process will become a goroutine,
 		// it does not return any normal value anymore, instead we need use channel to get value
 		// in this case the return was an error, we just ignore for now
-		go priceJob.Process(doneChannels[i])
+		go priceJob.Process(doneChannels[i], errorChannels[i])
 
 		//if err != nil {
 		//	fmt.Println("Could not process job")
@@ -40,6 +44,11 @@ func main() {
 		//	continue
 		//}
 		jobs[i] = priceJob
+	}
+
+	// this does not work because error maybe never occur
+	for _, errorChan := range errorChannels {
+		<-errorChan
 	}
 
 	// go through all channels in slice to waiting for it communication to end the application when all process are done!
