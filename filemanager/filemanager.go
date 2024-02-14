@@ -28,6 +28,10 @@ func (fm FileManager) ReadLines() ([]string, error) {
 		return nil, errors.New("failed to open file")
 	}
 
+	// defer this statement and will perform it just when the outer function has finished
+	// this key word is used to manager some operation automatically instead manually
+	defer file.Close()
+
 	scanner := bufio.NewScanner(file)
 
 	var lines []string
@@ -39,11 +43,9 @@ func (fm FileManager) ReadLines() ([]string, error) {
 
 	err = scanner.Err()
 	if err != nil {
-		_ = file.Close() // ignore error
 		return nil, errors.New("failed to load data from file")
 	}
 
-	_ = file.Close() // ignore error
 	return lines, nil
 }
 
@@ -54,6 +56,10 @@ func (fm FileManager) WriteResult(data any) error {
 		return errors.New("failed to create file")
 	}
 
+	// defer this statement and will perform it just when the outer function has finished
+	// this key word is used to manager some operation automatically instead manually
+	defer file.Close()
+
 	// simulate delay to work with goroutines
 	time.Sleep(3 * time.Second)
 
@@ -61,7 +67,6 @@ func (fm FileManager) WriteResult(data any) error {
 	encoder.SetIndent("", "  ")
 	err = encoder.Encode(data)
 	if err != nil {
-		_ = file.Close()
 		return errors.New("failed to convert data to JSON format")
 	}
 
@@ -69,17 +74,14 @@ func (fm FileManager) WriteResult(data any) error {
 	//marshal, err := json.MarshalIndent(data, "", "  ")
 	//
 	//if err != nil {
-	//	_ = file.Close()
 	//	return errors.New("failed to convert data to JSON format")
 	//}
 	//
 	//_, err = file.Write(marshal)
 	//
 	//if err != nil {
-	//	_ = file.Close()
 	//	return errors.New("failed to write data into a file")
 	//}
 
-	_ = file.Close()
 	return nil
 }
