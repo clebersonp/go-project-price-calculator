@@ -1,6 +1,7 @@
 package main
 
 import (
+	"example.com/price-calculator/filemanager"
 	"example.com/price-calculator/prices"
 	"fmt"
 )
@@ -11,7 +12,10 @@ func main() {
 	jobs := make([]*prices.TaxIncludedPriceJob, len(taxRates))
 
 	for i, taxRate := range taxRates {
-		priceJob := prices.NewTaxIncludedPriceJob(taxRate)
+		inputFilePath := "prices.txt"
+		outputFilePath := fmt.Sprintf("result_%.0f.json", taxRate*100)
+		fileManager := filemanager.New(inputFilePath, outputFilePath)
+		priceJob := prices.NewTaxIncludedPriceJob(fileManager, taxRate)
 		priceJob.Process()
 		jobs[i] = priceJob
 	}
