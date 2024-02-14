@@ -46,14 +46,15 @@ func main() {
 		jobs[i] = priceJob
 	}
 
-	// this does not work because error maybe never occur
-	for _, errorChan := range errorChannels {
-		<-errorChan
-	}
-
-	// go through all channels in slice to waiting for it communication to end the application when all process are done!
-	for _, done := range doneChannels {
-		<-done
+	// select is a special control structure in go to be used with channel
+	// when one or other channel has changed will be the winner and will perform the select block statement
+	for i := range taxRates {
+		select {
+		case err := <-errorChannels[i]:
+			fmt.Println(err)
+		case <-doneChannels[i]:
+			fmt.Println("Done!")
+		}
 	}
 
 	for _, job := range jobs {
