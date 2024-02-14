@@ -30,11 +30,10 @@ func (job *TaxIncludedPriceJob) LoadData() error {
 	return nil
 }
 
-func (job *TaxIncludedPriceJob) Process() error {
+func (job *TaxIncludedPriceJob) Process(doneChan chan bool) {
 	// load data before process
 	err := job.LoadData()
 	if err != nil {
-		return err
 	}
 
 	taxedPrices := make(map[string]string)
@@ -46,7 +45,14 @@ func (job *TaxIncludedPriceJob) Process() error {
 	job.TaxIncludedPrices = taxedPrices
 
 	// write data as JSON format
-	return job.IOManager.WriteResult(job)
+	err = job.IOManager.WriteResult(job)
+	if err != nil {
+	}
+
+	// at the end we need to communicate the channel
+	// we must omitted return statement because goroutine won't be able to receive the return data anymore
+	// now the communication only works with channel
+	doneChan <- true
 }
 
 func NewTaxIncludedPriceJob(iom iomanager.IOManager, taxRate float64) *TaxIncludedPriceJob {
